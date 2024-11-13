@@ -1,0 +1,16 @@
+version: "3"
+services:
+  flask_api:
+    image: mydjango:v1.0.0
+    container_name: django_api
+    volumes:
+      - .:/app
+    networks:
+      - default
+    ports:
+      - "8000:8000"
+    restart: always
+    environment:
+      #- env=prod
+      - TZ=Asia/Shanghai
+    command: bash run.sh
