@@ -2,9 +2,9 @@ import json
 import jwt
 import datetime
 from django.http import HttpResponse, JsonResponse
-# from.models import MyModel
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
+from .models import User
 
 
 @csrf_exempt
@@ -14,17 +14,14 @@ def user_register(request):
         username = data['email']
         password = data['password']
 
+        if User.objects.filter(username=username).exists():
+            return JsonResponse({'message': 'user exist'}, status=401)
 
-        # user_id = User.objects.create_user(username=username, password=password)
-        user_id = 0
+        user = User(username=username, password=password)
+        user.save()
 
+        return JsonResponse({'id': user.id, 'email': username})
 
-        # token = jwt.encode({
-        #     'username': username,
-        #     'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=2)
-        # }, 'your_secret_key')
-
-        return JsonResponse({'id': user_id, 'email': username})
     return HttpResponse('请使用 POST 方法请求')
 
 
@@ -35,17 +32,17 @@ def user_login(request):
         username = data['email']
         password = data['password']
 
+        user = User.objects.filter(username=username, password=password)
+        if user:
+            token = jwt.encode({
+                'username': username,
+                'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=2)
+            }, 'your_secret_key')
 
-        # user_id = User.objects.create_user(username=username, password=password)
-        user_id = 0
+            return JsonResponse({'access_token': token, 'refresh_token': 120})
+        else:
+            return JsonResponse({'message': 'Invalid credentials'}, status=401)
 
-
-        token = jwt.encode({
-            'username': username,
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=2)
-        }, 'your_secret_key')
-
-        return JsonResponse({'access_token': token, 'refresh_token': 120})
     return HttpResponse('请使用 POST 方法请求')
 
 
