@@ -52,8 +52,9 @@ def user_info(request):
         try:
             payload = jwt.decode(token, 'your_secret_key', algorithms=['HS256'])
             username = payload['username']
-            if username == 'test@test.com':
-                return JsonResponse({'id': 0, 'email': username})
+            user = User.objects.filter(username=username)
+            if user:
+                return JsonResponse({'id': user[0].id, 'email': username})
         except jwt.ExpiredSignatureError:
             return JsonResponse({'message': 'Token expired'}, status=401)
         except jwt.InvalidTokenError:
